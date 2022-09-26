@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const STATUS_CODE = require('./errors/errorCodes');
-const router = require('./routes/routes');
+const cardRouter = require('./routes/cardRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const { PORT = 3000 } = process.env;
 
@@ -19,7 +20,8 @@ app.use((req, res, next) => {
 
   next();
 });
-app.use('/', router);
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
 app.use('*', (req, res) => {
   res.status(STATUS_CODE.notFound).send({ message: 'Страница не найдена' });
 });

@@ -22,7 +22,7 @@ const createUser = (req, res) => {
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => {
-      res.status(STATUS_CODES.success).send(users);
+      res.send(users);
     })
     .catch(() => {
       res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка на сервере. Повторите запрос' });
@@ -35,7 +35,7 @@ const getUserById = (req, res) => {
       throw new NotFound();
     })
     .then((user) => {
-      res.status(STATUS_CODES.success).send(user);
+      res.send(user);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -58,14 +58,13 @@ const updateUser = (req, res) => {
     {
       new: true,
       runValidators: true,
-      upsert: false,
     },
   )
     .orFail(() => {
       throw new NotFound();
     })
     .then((user) => {
-      res.status(STATUS_CODES.success).send(user);
+      res.send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
@@ -88,14 +87,13 @@ const updateAvatar = (req, res) => {
     {
       new: true,
       runValidators: true,
-      upsert: false,
     },
   )
     .orFail(() => {
       throw new NotFound();
     })
     .then((user) => {
-      res.status(STATUS_CODES.success).send(user);
+      res.send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {

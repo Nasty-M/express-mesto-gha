@@ -22,7 +22,7 @@ const createCard = (req, res) => {
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
-      res.status(STATUS_CODES.success).send(cards);
+      res.send(cards);
     })
     .catch(() => {
       res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка. Повторите запрос' });
@@ -39,7 +39,7 @@ const likeCard = (req, res) => {
       throw new NotFound();
     })
     .then((card) => {
-      res.status(STATUS_CODES.success).send(card);
+      res.send(card);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -64,7 +64,7 @@ const dislikeCard = (req, res) => {
       throw new NotFound();
     })
     .then((card) => {
-      res.status(STATUS_CODES.success).send(card);
+      res.send(card);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
