@@ -133,6 +133,17 @@ const login = (req, res, next) => {
     .catch(next);
 };
 
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        next(new NotFound());
+      }
+      return res.send(user);
+    })
+    .catch(next);
+};
+
 module.exports = {
-  getUsers, getUserById, createUser, updateUser, updateAvatar, login,
+  getUsers, getUserById, createUser, updateUser, updateAvatar, login, getCurrentUser,
 };
