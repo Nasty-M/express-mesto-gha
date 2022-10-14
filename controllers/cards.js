@@ -33,7 +33,7 @@ const likeCard = (req, res, next) => {
     { new: true },
   )
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Карточка не найдена');
     })
     .then((card) => {
       res.send(card);
@@ -54,7 +54,7 @@ const dislikeCard = (req, res, next) => {
     { new: true },
   )
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Карточка не найдена');
     })
     .then((card) => {
       res.send(card);
@@ -71,7 +71,7 @@ const dislikeCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Карточка не найдена');
     })
     .then((card) => res.send(card))
     .catch((error) => {

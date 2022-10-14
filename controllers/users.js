@@ -50,7 +50,7 @@ const getUsers = (req, res, next) => {
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Карточка не найдена');
     })
     .then((user) => {
       res.send(user);
@@ -120,7 +120,7 @@ const login = (req, res, next) => {
   User.findUserByCredentials(email, password)
     .then((user) => {
       if (!user) {
-        next(new NotFound());
+        next(new NotFound('Карточка не найдена'));
       }
       const token = jwt.sign({ _id: user._id }, 'my-secret-code', { expiresIn: '7d' });
       res
