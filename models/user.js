@@ -52,7 +52,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
             throw new NotAuthError('Неправильные почта или пароль');
           }
 
-          return user; // теперь user доступен
+          return user;
         });
     });
 };
