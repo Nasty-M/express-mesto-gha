@@ -4,7 +4,6 @@ const User = require('../models/user');
 const NotFound = require('../errors/NotFound');
 const CastomizeError = require('../errors/CastomizeError');
 const ConflictError = require('../errors/ConflictError');
-const STATUS_CODES = require('../errors/errorCodes');
 
 const createUser = (req, res, next) => {
   const {
