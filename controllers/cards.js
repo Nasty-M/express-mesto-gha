@@ -73,16 +73,16 @@ const deleteCard = (req, res, next) => {
     .orFail(() => {
       throw new NotFound('Карточка не найдена');
     })
-    .then((card) => res.send(card))
-    .catch((error) => {
-      if (error.name === 'CastError') {
+    .then((currentCard) => {
+      if (currentCard.owner.toString() === req.user._id) {
         Card.findByIdAndRemove(req.params.cardId)
           .then(() => res.send({ message: 'Карточка удалена успешно' }))
           .catch(next);
       } else {
-        next(new Forbidden('Удалить карточку невозможно. Вы её не создавали!'));
+        next(new Forbidden('Удалить данную карточку невозможно. Вы не являетесь ее создателем'));
       }
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {
