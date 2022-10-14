@@ -1,35 +1,54 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFound = require('../errors/NotFound');
+const CastomizeError = require('../errors/CastomizeError');
+const ConflictError = require('../errors/ConflictError');
 const STATUS_CODES = require('../errors/errorCodes');
 
-const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => {
-      res.status(STATUS_CODES.successCreate).send(user);
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        res.status(STATUS_CODES.dataError).send({
-          message: 'Данные некорректны',
-        });
-      } else {
-        res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка на сервере. Повторите запрос' });
-      }
-    });
+      .then((user) => {
+        const userData = {
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+          _id: user._id,
+        };
+        res.send(userData);
+      })
+      .catch((error) => {
+        if (error.name === 'ValidationError') {
+          next(new CastomizeError('Данные некорректны'));
+        } else if (error.code === 11000) {
+          next(new ConflictError(`Пользователь с email ${email} уже существует!`));
+        } else {
+          next(error);
+        }
+      }));
 };
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.send(users);
     })
-    .catch(() => {
-      res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка на сервере. Повторите запрос' });
-    });
+    .catch(next);
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
       throw new NotFound();
@@ -39,18 +58,14 @@ const getUserById = (req, res) => {
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(STATUS_CODES.dataError).send({
-          message: 'Данные некорректны',
-        });
-      } else if (error.name === 'NotFound') {
-        res.status(error.status).send({ message: error.message });
+        next(new CastomizeError('Данные некорректны'));
       } else {
-        res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка на сервере. Повторите запрос' });
+        next(error);
       }
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about, _id = req.user._id } = req.body;
   User.findByIdAndUpdate(
     _id,
@@ -61,25 +76,21 @@ const updateUser = (req, res) => {
     },
   )
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Пользователь не найден');
     })
     .then((user) => {
       res.send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
-        res.status(STATUS_CODES.dataError).send({
-          message: 'Данные некорректны',
-        });
-      } else if (error.name === 'NotFound') {
-        res.status(error.status).send({ message: error.message });
+        next(new CastomizeError('Данные некорректны'));
       } else {
-        res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка на сервере. Повторите запрос' });
+        next(error);
       }
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar, _id = req.user._id } = req.body;
   User.findByIdAndUpdate(
     _id,
@@ -90,24 +101,39 @@ const updateAvatar = (req, res) => {
     },
   )
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Пользователь не найден');
     })
     .then((user) => {
       res.send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
-        res.status(STATUS_CODES.dataError).send({
-          message: 'Данные некорректны',
-        });
-      } else if (error.name === 'NotFound') {
-        res.status(error.status).send({ message: error.message });
+        next(new CastomizeError('Данные некорректны'));
       } else {
-        res.status(STATUS_CODES.serverError).send({ message: 'Произошла ошибка на сервере. Повторите запрос' });
+        next(error);
       }
     });
 };
 
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      if (!user) {
+        next(new NotFound());
+      }
+      const token = jwt.sign({ _id: user._id }, 'my-secret-code', { expiresIn: '7d' });
+      res
+        .cookie('access_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+        })
+        .send({ message: 'Аутентификация прошла успешно' });
+    })
+    .catch(next);
+};
+
 module.exports = {
-  getUsers, getUserById, createUser, updateUser, updateAvatar,
+  getUsers, getUserById, createUser, updateUser, updateAvatar, login,
 };
