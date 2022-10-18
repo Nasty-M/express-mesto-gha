@@ -82,7 +82,13 @@ const deleteCard = (req, res, next) => {
         next(new Forbidden('Удалить данную карточку невозможно. Вы не являетесь ее создателем'));
       }
     })
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        next(new CastomizeError('Данные некорректны'));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports = {
