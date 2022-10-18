@@ -119,9 +119,6 @@ const login = (req, res, next) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        next(new NotFound('Карточка не найдена'));
-      }
       const token = jwt.sign({ _id: user._id }, 'my-secret-code', { expiresIn: '7d' });
       res
         .cookie('access_token', token, {
@@ -137,7 +134,7 @@ const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        next(new NotFound());
+        return next(new NotFound());
       }
       return res.send(user);
     })

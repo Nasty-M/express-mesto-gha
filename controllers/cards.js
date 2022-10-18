@@ -69,7 +69,7 @@ const dislikeCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => {
       throw new NotFound('Карточка не найдена');
     })
